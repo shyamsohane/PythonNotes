@@ -219,3 +219,51 @@ async def get_data():
 ---
 
 Happy Coding in Python 🚀
+
+
+---
+
+## 12. `self` in Python vs `this` in C#
+
+One of the most common questions C# developers have when moving to Python is:  
+**"Why do I need to write `self` in every method?"**
+
+### C#
+In C#, the current object is referenced automatically with `this`:
+```csharp
+public class Person {
+    public string Name { get; set; }
+    public void Greet() {
+        Console.WriteLine($"Hello {this.Name}");
+    }
+}
+```
+
+### Python
+In Python, you must explicitly declare `self` as the first parameter of instance methods:
+```python
+class Person:
+    def __init__(self, name):
+        self.name = name
+
+    def greet(self):
+        print(f"Hello {self.name}")
+```
+
+### Why the difference?
+- In C#, the compiler automatically inserts `this` for instance members.  
+- In Python, methods are just functions inside a class. The first argument is **the instance itself**, by convention called `self`.
+
+So:
+```python
+p.greet()
+```
+is really shorthand for:
+```python
+Person.greet(p)
+```
+
+This design makes it clear that methods are just functions with the instance passed in.
+
+---
+
