@@ -266,4 +266,177 @@ Person.greet(p)
 This design makes it clear that methods are just functions with the instance passed in.
 
 ---
+# Parallel Programming in Python (for C# Developers)
+
+This guide explains how to perform **parallel and concurrent programming in Python**, comparing it to familiar **C# concepts** like `Task`, `async/await`, and `Parallel.ForEach`.
+
+---
+
+## 1. Concurrency vs Parallelism
+
+- **Concurrency** → Multiple tasks make progress at the same time (e.g., `async/await` in C#).
+- **Parallelism** → Multiple tasks actually run simultaneously on multiple CPU cores.
+
+Python offers both through libraries:
+- `threading` → concurrency (I/O-bound tasks).
+- `multiprocessing` → parallelism (CPU-bound tasks).
+- `asyncio` → async/await style (like C# async).
+
+---
+
+## 2. Threading (for I/O-bound tasks)
+
+**C#:**
+```csharp
+var t1 = new Thread(() => DownloadFile("a.txt"));
+var t2 = new Thread(() => DownloadFile("b.txt"));
+t1.Start();
+t2.Start();
+```
+
+**Python:**
+```python
+import threading
+
+def download_file(name):
+    print(f"Downloading {name}")
+
+t1 = threading.Thread(target=download_file, args=("a.txt",))
+t2 = threading.Thread(target=download_file, args=("b.txt",))
+
+t1.start()
+t2.start()
+```
+
+⚠️ Due to the **Global Interpreter Lock (GIL)**, Python threads do not run CPU tasks truly in parallel.  
+They are best for I/O tasks (file, network).
+
+---
+
+## 3. Multiprocessing (for CPU-bound tasks)
+
+**C#:**
+```csharp
+Parallel.For(0, 5, i => {
+    Console.WriteLine(i);
+});
+```
+
+**Python:**
+```python
+from multiprocessing import Process
+
+def worker(n):
+    print(f"Processing {n}")
+
+processes = []
+for i in range(5):
+    p = Process(target=worker, args=(i,))
+    processes.append(p)
+    p.start()
+
+for p in processes:
+    p.join()
+```
+
+Here each process has its own Python interpreter, bypassing the GIL → true parallelism.
+
+---
+
+## 4. AsyncIO (async/await style)
+
+**C#:**
+```csharp
+public async Task RunAsync() {
+    await Task.Delay(1000);
+    Console.WriteLine("Done");
+}
+```
+
+**Python:**
+```python
+import asyncio
+
+async def run_async():
+    await asyncio.sleep(1)
+    print("Done")
+
+asyncio.run(run_async())
+```
+
+AsyncIO is **single-threaded** but handles thousands of tasks concurrently (great for network servers, APIs).
+
+---
+
+## 5. ThreadPoolExecutor (high-level parallelism)
+
+Python’s `concurrent.futures` provides an easy way (similar to `Task.Run` in C#).
+
+**C#:**
+```csharp
+var tasks = Enumerable.Range(0, 5)
+    .Select(i => Task.Run(() => DoWork(i)));
+await Task.WhenAll(tasks);
+```
+
+**Python:**
+```python
+from concurrent.futures import ThreadPoolExecutor
+
+def work(n):
+    print(f"Working {n}")
+
+with ThreadPoolExecutor() as executor:
+    futures = [executor.submit(work, i) for i in range(5)]
+    for f in futures:
+        f.result()
+```
+
+---
+
+## 6. Multiprocessing Pool
+
+For distributing tasks across processes easily:
+
+```python
+from multiprocessing import Pool
+
+def square(n):
+    return n * n
+
+with Pool(4) as pool:
+    results = pool.map(square, [1, 2, 3, 4])
+    print(results)
+```
+
+Output:
+```
+[1, 4, 9, 16]
+```
+
+---
+
+## 7. Summary: Which to Use?
+
+| Scenario               | C# Equivalent           | Python Approach              |
+|-------------------------|-------------------------|------------------------------|
+| I/O-bound (web, files) | `Task`, `async/await`   | `threading` / `asyncio`      |
+| CPU-bound (math, AI)   | `Parallel.For`, TPL     | `multiprocessing`, `Pool`    |
+| Mixed workloads        | Combine Tasks & Threads | Mix `asyncio` + multiprocessing |
+
+---
+
+## 8. Next Steps
+
+- Explore libraries:  
+  - `joblib` (for data science parallelism)  
+  - `ray` (distributed computing)  
+  - `dask` (big data parallelism)  
+- Benchmark before choosing threading vs multiprocessing.
+
+---
+
+⚡ Key takeaway:  
+- Use **`asyncio`/`threading`** for I/O tasks.  
+- Use **`multiprocessing`** for CPU-heavy work.  
 
